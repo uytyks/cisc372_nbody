@@ -16,7 +16,7 @@ __global__ void arraySet(vector3* v, vector3** a){
                 a[i]=&v[i*NUMENTITIES];
 }
 
-__global__ void accelComp(){
+__global__ void accelComp(vector3** a, vector3* pos, float* mass){
         int in = threadIdx.x;
         for (i=0;i<NUMENTITIES;i++){
                 for (j=0;j<NUMENTITIES;j++){
@@ -35,7 +35,7 @@ __global__ void accelComp(){
         }
 }
 
-__global__ void sumMatrix(){
+__global__ void sumMatrix(vector3** a, vector3* pos, vector3* vel){
         for (i=0;i<NUMENTITIES;i++){
                 vector3 accel_sum={0,0,0};
                 for (j=0;j<NUMENTITIES;j++){
@@ -70,9 +70,9 @@ void compute(){
         //      accels[i]=&values[i*NUMENTITIES];
         arraySet<<<1,100>>>(values,accels);`
         //first compute the pairwise accelerations.  Effect is on the first argument.
-        accelComp<<<1,100>>>();
+        accelComp<<<1,100>>>(accels,d_hPos,d_mass);
         //sum up the rows of our matrix to get effect on each entity, then update velocity and position.
-        sumMatrix<<<1,100>>>();
+        sumMatrix<<<1,100>>>(accels,d_hPos,d_hVel);
         //free(accels);
         //free(values);
         //free device memory
