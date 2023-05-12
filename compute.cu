@@ -73,7 +73,7 @@ void compute(){
         //for (i=0;i<NUMENTITIES;i++)
         //accels[i]=&values[i*NUMENTITIES];
         arraySet<<<1,10>>>(values,accels);
-        cudaCheckError();
+        //cudaCheckError();
         cudaDeviceSynchronize();
         //first compute the pairwise accelerations.  Effect is on the first argument.
         accelComp<<<1,10>>>(accels,d_hPos,d_mass);
