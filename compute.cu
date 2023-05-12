@@ -78,14 +78,14 @@ void compute(){
         cudaMemcpy(d_mass,mass,sizeof(double),cudaMemcpyHostToDevice);
         //for (i=0;i<NUMENTITIES;i++)
         //accels[i]=&values[i*NUMENTITIES];
-        arraySet<<<1,108>>>(values,accels);
+        arraySet<<<1,1008>>>(values,accels);
         //cudaCheckError();
         cudaDeviceSynchronize();
         //first compute the pairwise accelerations.  Effect is on the first argument.
-        accelComp<<<1,108>>>(accels,d_hPos,d_mass);
+        accelComp<<<1,1008>>>(accels,d_hPos,d_mass);
         cudaDeviceSynchronize();
         //sum up the rows of our matrix to get effect on each entity, then update velocity and position.
-        sumMatrix<<<1,108>>>(accels,d_hPos,d_hVel);
+        sumMatrix<<<1,1008>>>(accels,d_hPos,d_hVel);
         cudaDeviceSynchronize();
         //free(accels);
         //free(values);
