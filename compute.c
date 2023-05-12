@@ -7,13 +7,29 @@
 //Parameters: None
 //Returns: None
 //Side Effect: Modifies the hPos and hVel arrays with the new positions and accelerations after 1 INTERVAL
+//we shall define 3 functions here
+
+
+__global__ void arraySet(vector3* v, vector3** a){
+	int in = threadIdx.x;
+	for (i=in;i<NUMENTITIES;in += blockDim.x)
+                a[i]=&v[i*NUMENTITIES];
+}
+
+
 void compute(){
 	//make an acceleration matrix which is NUMENTITIES squared in size;
 	int i,j,k;
-	vector3* values=(vector3*)malloc(sizeof(vector3)*NUMENTITIES*NUMENTITIES);
-	vector3** accels=(vector3**)malloc(sizeof(vector3*)*NUMENTITIES);
-	for (i=0;i<NUMENTITIES;i++)
-		accels[i]=&values[i*NUMENTITIES];
+	vector3* values;
+	vector3** accels;
+	//device memory start
+	//vector3* values=(vector3*)malloc(sizeof(vector3)*NUMENTITIES*NUMENTITIES);
+	//vector3** accels=(vector3**)malloc(sizeof(vector3*)*NUMENTITIES);
+	cudaMalloc(&values,sizeof(vector3*)*NUMENTITIES*NUMENTITIES);
+	cudaMalloc(&accels,sizeof(vector3**)*NUMENTITIES);
+	//for (i=0;i<NUMENTITIES;i++)
+	//	accels[i]=&values[i*NUMENTITIES];
+	arraySet<<<1,100>>>(values,accels);`
 	//first compute the pairwise accelerations.  Effect is on the first argument.
 	for (i=0;i<NUMENTITIES;i++){
 		for (j=0;j<NUMENTITIES;j++){
@@ -44,6 +60,9 @@ void compute(){
 			hPos[i][k]=hVel[i][k]*INTERVAL;
 		}
 	}
-	free(accels);
-	free(values);
+	//free(accels);
+	//free(values);
+	//free device memory
+	cudaFree(accels);
+	cudaFree(values);
 }
