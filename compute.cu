@@ -3,7 +3,7 @@
 #include <math.h>
 #include "vector.h"
 #include "config.h"
-
+#include "compute.h"
 //compute: Updates the positions and locations of the objects in the system based on gravity.
 //Parameters: None
 //Returns: None
@@ -54,6 +54,7 @@ __global__ void sumMatrix(vector3** a, vector3* pos, vector3* vel){
                         pos[i][k]=vel[i][k]*INTERVAL;
                 }
         }
+        printf("hi");
 }
 void compute(){
         //make an acceleration matrix which is NUMENTITIES squared in size;
@@ -66,23 +67,26 @@ void compute(){
         cudaMalloc(&values,sizeof(vector3*)*NUMENTITIES*NUMENTITIES);
         cudaMalloc(&accels,sizeof(vector3**)*NUMENTITIES);
         cudaMalloc(&d_mass,sizeof(double*));
-        cudaMemcpy(d_hPos,hPos,sizeof(hPos),cudaMemcpyHostToDevice);
-        cudaMemcpy(d_hVel,hVel,sizeof(hVel),cudaMemcpyHostToDevice);
-        cudaMemcpy(d_mass,mass,sizeof(mass),cudaMemcpyHostToDevice);
+        cudaMemcpy(d_hPos,hPos,sizeof(vector3*),cudaMemcpyHostToDevice);
+        cudaMemcpy(d_hVel,hVel,sizeof(vector3*),cudaMemcpyHostToDevice);
+        cudaMemcpy(d_mass,mass,sizeof(double*),cudaMemcpyHostToDevice);
         //for (i=0;i<NUMENTITIES;i++)
         //accels[i]=&values[i*NUMENTITIES];
-        arraySet<<<1,100>>>(values,accels);
+        arraySet<<<1,10>>>(values,accels);
+        cudaCheckError();
+        cudaDeviceSynchronize();
         //first compute the pairwise accelerations.  Effect is on the first argument.
-        accelComp<<<1,100>>>(accels,d_hPos,d_mass);
+        accelComp<<<1,10>>>(accels,d_hPos,d_mass);
+        cudaDeviceSynchronize();
         //sum up the rows of our matrix to get effect on each entity, then update velocity and position.
-        sumMatrix<<<1,100>>>(accels,d_hPos,d_hVel);
+        sumMatrix<<<1,10>>>(accels,d_hPos,d_hVel);
         cudaDeviceSynchronize();
         //free(accels);
         //free(values);
         //free device memory
-        cudaMemcpy(hPos,d_hPos,sizeof(hPos),cudaMemcpyDeviceToHost);
-        cudaMemcpy(hVel,d_hVel,sizeof(hVel),cudaMemcpyDeviceToHost);
-        cudaMemcpy(mass,d_mass,sizeof(mass),cudaMemcpyDeviceToHost);
+        cudaMemcpy(hPos,d_hPos,sizeof(vector3*),cudaMemcpyDeviceToHost);
+        cudaMemcpy(hVel,d_hVel,sizeof(vector3*),cudaMemcpyDeviceToHost);
+        cudaMemcpy(mass,d_mass,sizeof(double*),cudaMemcpyDeviceToHost);
         cudaFree(accels);
         cudaFree(values);
 }
