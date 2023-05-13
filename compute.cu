@@ -1,3 +1,4 @@
+//Sean Williams and Zachary England
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
